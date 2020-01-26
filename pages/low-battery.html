@@ -4,9 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="./low-battery.css">
   <title>Battery Warning</title>
 </head>
 <body>
-  <h3>A bateria está acabando</h3>
+  <h3 class="battery-warning">The battery is getting low!</h3>
+  <div class="button">
+    <span id="close">OK</span>
+  </div>
+  <script>
+    document.getElementById('close').addEventListener('click', function (e) {
+      window.close();
+    });
+  </script>
 </body>
 </html>

@@ -5,6 +5,7 @@ const {
   Menu,
   BrowserWindow,
 } = require('electron');
+
 const linuxBattery = require('linux-battery');
 
 const tray = null;
@@ -13,41 +14,60 @@ let win;
 
 let mainTray = {};
 
+let time = 5000;
+
+function openWarning() {
+  win = new BrowserWindow({
+    width: 300,
+    height: 75,
+    show: false,
+    center: true,
+    resizable: false,
+    autoHideMenuBar: true,
+    backgroundColor: '#333',
+    skipTaskbar: true,
+  });
+
+  win.loadFile(resolve(__dirname, 'pages', 'low-battery.html'));
+
+  win.once('ready-to-show', () => {
+    win.show();
+  });
+
+  win.on('close', (event) => {
+    event.preventDefault();
+    if (win && win.isVisible()) {
+      win.hide();
+      win.close();
+    }
+    win = null;
+  });
+}
+
+function checkBattery(percentage) {
+  let level = percentage.replace('%', '');
+  level = parseInt(level, 10);
+
+  if (level <= 10) {
+    time = 300000;
+  } else {
+    time = 600000;
+  }
+
+  if (level <= 20) {
+    openWarning();
+  }
+}
+
 async function render(tray = mainTray) {
   const contextMenu = Menu.buildFromTemplate([
     {
       type: 'normal',
       label: 'Parar',
-      role: 'quit',
       enabled: true,
-    },
-    {
-      label: 'teste',
       click: () => {
-        win = new BrowserWindow({
-          width: 300,
-          height: 75,
-          show: false,
-          center: true,
-          resizable: false,
-          autoHideMenuBar: true,
-          backgroundColor: '#333',
-        });
-
-        win.loadFile(resolve(__dirname, 'pages', 'low-battery.html'));
-
-        win.once('ready-to-show', () => {
-          win.show();
-        });
-
-        win.on('close', (event) => {
-          event.preventDefault();
-          if (win.isVisible()) {
-            win.hide();
-            win.close();
-          }
-          win = null;
-        });
+        process.exit(0);
+        app.exit(0);
       },
     },
   ]);
@@ -55,9 +75,14 @@ async function render(tray = mainTray) {
   tray.setContextMenu(contextMenu);
   tray.on('click', tray.popUpContextMenu);
 
-  const [battery] = await linuxBattery();
-  const { percentage } = battery;
-  setInterval(() => console.log(percentage), 10000);
+  setInterval(async () => {
+    const [battery] = await linuxBattery();
+    if (battery.state !== 'charging') {
+      const { percentage } = battery;
+      checkBattery(percentage);
+      console.log(percentage);
+    }
+  }, time);
 }
 
 app.on('ready', () => {
