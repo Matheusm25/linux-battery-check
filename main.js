@@ -14,7 +14,7 @@ let win;
 
 let mainTray = {};
 
-let time = 5000;
+let time = 300000;
 
 function openWarning() {
   win = new BrowserWindow({
@@ -49,9 +49,9 @@ function checkBattery(percentage) {
   level = parseInt(level, 10);
 
   if (level <= 10) {
-    time = 300000;
+    time = 180000;
   } else {
-    time = 600000;
+    time = 300000;
   }
 
   if (level <= 20) {
@@ -63,7 +63,7 @@ async function render(tray = mainTray) {
   const contextMenu = Menu.buildFromTemplate([
     {
       type: 'normal',
-      label: 'Parar',
+      label: 'Stop',
       enabled: true,
       click: () => {
         process.exit(0);
@@ -80,7 +80,6 @@ async function render(tray = mainTray) {
     if (battery.state !== 'charging') {
       const { percentage } = battery;
       checkBattery(percentage);
-      console.log(percentage);
     }
   }, time);
 }
